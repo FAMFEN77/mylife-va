@@ -41,6 +41,9 @@ client_secret_*.json
 backend/prisma/dev.db
 backend/prisma/dev.db-journal
 backend/prisma/backup_migrations/
+backend/prisma/schemaold.prisma
+backend/start-dev.err
+backend/uploads/
 
 # Tooling
 .idea/
@@ -58,6 +61,7 @@ temp/
 # Generated assets
 frontend/public/uploads/
 frontend/public/tmp/
+frontend/.pnpm-store/
 
 # Local scripts/binaries
 Postman Agent v0.4.72 (x64).exe

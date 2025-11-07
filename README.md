@@ -1,123 +1,145 @@
-# Taskee – Virtuele Assistent voor Zorg & Facilitaire Teams
+# Taskee – Virtuele AI-Assistent & Operations Suite
 
-Taskee is een SaaS-platform dat managers en medewerkers helpt om werkprocessen te organiseren zonder versnipperde Excel-lijsten of losse tools. Het combineert een AI-assistent met concrete modules voor planning, registraties en klantcommunicatie – volledig geïntegreerd met Google Workspace en Stripe.
-
----
-
-## 🎯 Elevator Pitch
-- **AI-gedreven assistent** die taken, reminders, kalenderafspraken en e-mails automatisch aanmaakt.
-- **Team Productivity Suite** met takenbeheer, uren- en ritregistratie, declaraties, verlof, kwaliteitsinspecties en facturatie.
-- **Verantwoorde automatisering**: elk proces heeft zowel een employee- als managerflow (aanmaken, overzicht, goedkeuren).
-- **Enterprise-ready**: NestJS + PostgreSQL backend, Next.js frontend, Prisma ORM, JWT-auth, Google OAuth en Stripe billing.
+Taskee is een end-to-end SaaS-platform dat zorg‑ en facilitair teams helpt om planning, taken, quality control en klantcommunicatie vanuit één omgeving te runnen. Een AI-assistent (OpenAI) voert acties uit, terwijl de gebruikersinterface modules aanbiedt voor dagelijkse operaties – volledig geïntegreerd met Google Workspace en Stripe.
 
 ---
 
-## ✅ Functionaliteiten Overzicht
+## 🚀 Hoogtepunten
+- **AI Copilot**: begrijpt intents (taken, reminders, calendar, e-mail, groceries, file summarize) en voert direct acties uit via Google APIs.
+- **Module-bibliotheek**: tasks, reminders, planner, availability, trips, time tracking, leave requests, inspections, invoices, expenses, documents & meer.
+- **Enterprise proof**: NestJS backend met Prisma + PostgreSQL, Next.js 14 frontend, JWT-auth, Google OAuth en Stripe billing.
+- **Ops-friendly**: duidelijke approval flows, dashboards, filters & statuskaarten voor managers.
 
-| Domein               | Kernmogelijkheden                                                                                                                                                                |
-|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **AI Assistant**     | Intent-detectie (taken, reminders, calendar, e-mail, math, room reservations) + automatische Google Calendar- en Gmail-integratie.                                                |
-| **Takenbeheer**      | Teamtaken met status, deadlines, toewijzing, overzicht voor teamleden en managers, filters en dashboardstatistieken.                                                              |
-| **Reminders**        | Persoonlijke reminders met agenda-koppeling, status- en filterpanel, relatieve tijdweergave en verzendstatus.                                                                    |
-| **Urenregistratie**  | Medewerkerregistreert gewerkte uren, manager keurt goed. Statistieken (totaal/goedgekeurd/pending) en tabelweergave.                                                             |
-| **Ritregistratie**   | Ritformulier, overzicht met filters, manager kan ritten goed- of afkeuren. Kilometerstatistieken.                                                                                |
-| **Declaraties**      | Declariatieformulier, statussen, stub bon-upload (OCR-preview), filterchips, manager approvals.                                                                                  |
-| **Verlof & Ziekte**  | Verlofformulier (type, periode, notitie), statusoverzicht met kalender-indicator, manager approvals, automatische calendar hook (stub).                                           |
-| **Inspecties**       | Managers registreren inspecties met checklist, PDF-stub genereren en rapport mailen naar klant. Pending-lijst en filters op datum/locatie.                                       |
-| **Facturatie**       | Factuurmodel met PDF-stub en Gmail-versturen. Statusbeheer (draft → sent → paid).                                                                                                |
-| **Stripe Billing**   | Checkout sessies, webhook-verwerking, premiumflag, customer/subscription metadata voor gebruikers.                                                                                |
-| **Team & Planning**  | Teamuitnodigingen, availability-registratie, planner-suggestions (AI-assist gebruikt deze data).                                                                                 |
-| **Authenticatie**    | Magic-link/JWT login, Google OAuth-koppeling, wachtwoordresetflow (UI fix staat gepland).                                                                                         |
+Bekijk voor de volledige requirements de [MyLife-VA-Full-Project-and-Safe-Migration-Spec.md](./MyLife-VA-Full-Project-and-Safe-Migration-Spec.md).
 
 ---
 
-## 🧠 AI Assistant Intent Matrix
-| Intent              | Actie                                                                                      |
-|---------------------|---------------------------------------------------------------------------------------------|
-| `task.create/list`  | Taken toevoegen, status toggelen, lijst tonen.                                              |
-| `reminder.create`   | Reminder met agenda-event maken.                                                            |
-| `calendar.create`   | Google Calendar event aanmaken (bijv. vergaderingen).                                       |
-| `email.write/send`  | E-mail draften of verzenden via Gmail API.                                                  |
-| `room.reserve`      | Ruimte-reserveringsservice aanroepen (incl. agenda fallback).                               |
-| `math.calculate`    | Math parser met sanitised evaluation (rounding en foutafhandeling).                         |
-| `grocery.list`      | Voorbeeld boodschappenlijst genereren.                                                      |
-| `file.summarize`    | Stub – wordt later gekoppeld aan documentenservice.                                         |
+## 🧱 Architectuur & Stack
+| Laag        | Technologie | Details |
+|-------------|-------------|---------|
+| Frontend    | Next.js 14 (App Router), TailwindCSS, TypeScript | Context-based auth, rol-gebonden navigatie, modulair componentensysteem, PWA manifest. |
+| Backend     | NestJS 10, Prisma ORM, TypeScript | Gescheiden modules (Assistant, Auth, Tasks, Reminders, Google, Stripe, etc.), guards & interceptors, Swagger docs. |
+| Database    | PostgreSQL (Neon of lokaal) | Prisma schema + migraties (`backend/prisma`). |
+| Integraties | Google Calendar & Gmail, Stripe Billing, Mailgun fallback | OAuth-token beheer per user, webhooks voor Stripe, e-mailservices. |
+| Infra       | Docker Compose (backend + frontend), pnpm workspaces | Zie `docker-compose.yml` en scripts in `/scripts`. |
 
 ---
 
-## 🏗 Architectuur
-### Backend
-- **NestJS 10** + **TypeScript**
-- **Prisma ORM 5** met PostgreSQL
-- Modules:
-  - Auth, Assistant, Tasks, Reminders, Google (OAuth, Calendar, Gmail), Team, Availability, Planning
-  - Time, Trips, Expenses, Leave, Inspections, Invoices, Billing (Stripe), Rooms
-- **JWT + Guards/Roles** (MANAGER vs. MEDEWERKER)
-- **Google Calendar & Gmail integratie** (OAuth tokens per gebruiker)
-- **Stripe** voor checkout + webhooks (premium status)
-- **Mailgun fallback** indien geen API key aanwezig
+## ✅ Functies per Domein
+- **Assistant**: intent-detectie, fallback responses, scheduling + e-mail automatisering.
+- **Productivity**: tasks, boards (kanban), reminders, availability, planner suggestions.
+- **Operations**: time & trip tracking, expenses, leave, inspections, invoices, documents, rooms.
+- **Billing**: Stripe checkout sessies + webhooks → premium flag op gebruiker.
+- **Security**: magic link + JWT login, Google OAuth, password reset, role-based guards (MANAGER / MEMBER).
 
-### Frontend
-- **Next.js 14 (App Router)** + TailwindCSS
-- Context-gebaseerde auth (`AuthProvider`), nav-items op rol
-- Pagina’s per module + dashboards met stat kaarten, filterchips en tabellen
-- `lib/api.ts` bevat strongly typed helpers (tasks, time, trips, expenses, leave, etc.)
+Een volledige walkthrough staat in [`docs/handbook.md`](./docs/handbook.md) en de deployment/config instructies in [`docs/config-deployment-handbook.md`](./docs/config-deployment-handbook.md).
 
 ---
 
-## 🔐 Security & Compliance
-- JWT-authenticatie, refresh tokens (uitbreidbaar met rotatie)
-- Rollen per gebruiker, endpoints met `@Roles` + `RolesGuard`
-- Password reset tokens, Magic links, hashing
-- `.env` driven configuration: DB, Google, Mailgun, Stripe
-- Mailgun-fallback logging: applicatie blijft functioneren zonder SMTP key
-- Agenda/Email calls zijn wrapped in try/catch en loggen duidelijke waarschuwingen
+## 🔧 Installatie (lokale ontwikkeling)
+### 1. Voorwaarden
+- Node.js 18+
+- pnpm 8+
+- Docker (optioneel maar aanbevolen)
+- PostgreSQL (lokaal of managed)
+
+### 2. Environment variabelen
+Maak kopieën van de voorbeeldbestanden (of creëer zelf):
+- `backend/.env`
+- `backend/.env.docker`
+- `frontend/.env.local`
+- `frontend/.env`
+
+Belangrijkste variabelen:
+```
+DATABASE_URL=postgresql://user:pass@host:port/db
+JWT_SECRET=...
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+STRIPE_SECRET_KEY=...
+MAILGUN_API_KEY=... (optioneel)
+NEXT_PUBLIC_API_URL=http://localhost:4000
+```
+
+### 3. Dependencies installeren
+```bash
+cd backend && pnpm install
+cd ../frontend && pnpm install
+```
+
+### 4. Prisma migraties
+```bash
+cd backend
+pnpm prisma migrate deploy   # of pnpm prisma migrate dev
+pnpm prisma generate
+```
+
+### 5. Project starten
+```bash
+# Backend
+cd backend
+pnpm run start:dev           # http://localhost:4000 (Swagger op /swagger)
+
+# Frontend
+cd ../frontend
+pnpm dev                     # http://localhost:4001
+```
+
+### 6. Via Docker
+```bash
+docker compose up --build
+```
+Alle services worden met de juiste poorten opgezet zoals gedefinieerd in `docker-compose.yml`.
 
 ---
 
-## ⚙️ Dev & Ops
-1. **Install Dependencies**
-   ```bash
-   cd backend && pnpm install
-   cd ../frontend && pnpm install
-   ```
-2. **Migraties & Prisma Client**
-   ```bash
-   cd backend
-   npx prisma migrate deploy
-   npx prisma generate
-   ```
-3. **Starten**
-   ```bash
-   # Backend
-   pnpm run start:dev
+## 🧪 Testen & QA
+- Handmatige QA-scripts staan in [`TESTING-GUIDE.md`](./TESTING-GUIDE.md).
+- Postman collectie + environment: zie `docs/` en `scripts/`.
+- Belangrijke checkpunten:
+  - JWT & magic link login (inclusief Google OAuth callback)
+  - Stripe checkout + webhook → `premium = true`
+  - Google Calendar en Gmail permissions voor AI-gestuurde acties
+  - Reminder scheduler (< 60s) en tasks board
 
-   # Frontend
-   cd ../frontend
-   pnpm --filter frontend dev
-   ```
-4. **Testen**
-   - Swagger: http://localhost:4000/swagger
-   - Frontend: http://localhost:4001
-   - Zie [`TESTING-GUIDE.md`](./TESTING-GUIDE.md) voor volledige manual QA checklist
-
-> **Let op:** `next build` geeft nog een warning voor `/reset-password` (gebruik `useSearchParams` → Suspense). Dit staat gepland voor refactor.
+> Tip: gebruik de `restart-all.ps1` en `frontend/lib/start-backend.ps1` scripts voor snellere lokale resets.
 
 ---
 
-## 📈 Roadmap & Nice-to-Haves
-- [ ] Frontend koppelingen afronden voor facturen, inspecties, Stripe checkout, assistant UI enhancements
-- [ ] Documentgenerator (sjablonen → PDF + e-mail)
-- [ ] Volledig Mailgun/Gmail switchable email service
-- [ ] UI fixes voor reset-password (Suspense) en polijsten van alle forms
-- [ ] Automatischte tests (E2E met Playwright en contracttests)
+## 📦 Handige Commando’s
+```bash
+# Formatter / Lint (optioneel)
+pnpm lint
+pnpm format
+
+# Prisma Studio
+pnpm prisma studio
+
+# Seed data
+pnpm ts-node prisma/seed.ts
+```
 
 ---
 
-## 🤝 Voor potentiële klanten
-- Alles-in-één teamassistent voor zorg, facilitair en andere personeels-intensieve branches.
-- Helpt bij **compliance** (uren/ritten/verlof), **kwaliteit** (inspecties), **facturatie**, en **planning**.
-- AI-assistent vermindert handmatig werk; managers houden regie via approval flows.
-- Modulair opgezet: packages kunnen aan/uit per klantbehoefte.
+## 📍 Roadmap (korte termijn)
+- [ ] Frontend hooks voor facturen, inspecties & Stripe flows verder polijsten
+- [ ] Mailgun/Gmail plug-and-play selection
+- [ ] Suspense fix voor `/reset-password`
+- [ ] Playwright E2E tests + Contract tests
+- [ ] Document generator (templates → PDF + e-mail)
 
-Meer zien? Gebruik de testgids, speel met de assistant, en oordeel zelf hoe Taskee workflow-chaos omzet in een behapbare werkdag. 💼✨
+Zie ook [`CHANGES-AND-TESTS.md`](./CHANGES-AND-TESTS.md) voor de changelog per sprint.
+
+---
+
+## 🤝 Samenwerken
+Dit project staat op GitHub als private repo. Wil je bijdragen?
+1. Fork of clone (`git clone https://github.com/FAMFEN77/mylife-va.git`)
+2. Maak een feature branch (`git checkout -b feat/...`)
+3. Commit met duidelijke boodschappen en open een PR.
+
+Voor vragen over architectuur, onboarding of deployment: check de handbooks in `docs/` of neem contact op via het projectkanaal.
+
+---
+
+Taskee brengt structuur in elke werkdag – van AI-gestuurde reminders tot facturatie en compliance. Veel bouwplezier! 💼✨
