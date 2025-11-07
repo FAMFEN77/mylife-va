@@ -28,9 +28,14 @@ Bekijk voor de volledige requirements de [MyLife-VA-Full-Project-and-Safe-Migrat
 ## ✅ Functies per Domein
 - **Assistant**: intent-detectie, fallback responses, scheduling + e-mail automatisering.
 - **Productivity**: tasks, boards (kanban), reminders, availability, planner suggestions.
-- **Operations**: klantenregistratie (CRM) mét documentuploads, time & trip tracking, expenses, leave, inspections, invoices, rooms.
+- **Operations**: klantenregistratie (CRM) met CSV-import, archiveren/herstellen, uitgebreide filters en document vault (upload + externe link); daarnaast time & trip tracking, expenses, leave, inspections, invoices, rooms.
 - **Billing**: Stripe checkout sessies + webhooks → premium flag op gebruiker.
 - **Security**: magic link + JWT login, Google OAuth, password reset, role-based guards (MANAGER / MEMBER).
+
+### Klantbeheer & Documenten
+- Manager- en medewerkerflows voor nieuwe klanten, inclusief CSV-import, zoeken op naam/plaats/status en een archief.
+- Detailpagina met inline editing, documentuploads (bestanden + metadata) en externe document-URL’s.
+- Documententabel met statusfilter, openen/archiveren acties en audit timestamps.
 
 Een volledige walkthrough staat in [`docs/handbook.md`](./docs/handbook.md) en de deployment/config instructies in [`docs/config-deployment-handbook.md`](./docs/config-deployment-handbook.md).
 
