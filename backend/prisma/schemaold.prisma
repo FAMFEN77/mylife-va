@@ -1,0 +1,193 @@
+﻿generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+}
+
+model Theme {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  title        String
+  tag          String
+  cssVariables Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sets ProductSet[]
+}
+
+model ProductSet {
+  id           String   @id @default(cuid())
+  themeId      String
+  theme        Theme    @relation(fields: [themeId], references: [id])
+  slug         String   @unique
+  title        String
+  imgAlt       String
+  badges       String[]
+  bullets      String[]
+  affiliateUrl String?
+  heroImage    String?
+  position     Int      @default(0)
+  published    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items ProductSetItem[]
+
+  @@index([themeId])
+  @@index([position])
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  sku            String   @unique
+  name           String
+  description    String?
+  themeKeys      String[]
+  room           String
+  category       String
+  price          Decimal?
+  bullets        String[]
+  imageUrl       String?
+  affiliateUrl   String?
+  seo            Json?
+  searchDocument String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  reviews   ProductReview[]
+  setItems  ProductSetItem[]
+
+  @@index([room])
+  @@index([category])
+  @@index([searchDocument])
+}
+
+model ProductSetItem {
+  id        String @id @default(cuid())
+  setId     String
+  productId String
+  position  Int    @default(0)
+
+  set     ProductSet @relation(fields: [setId], references: [id])
+  product Product    @relation(fields: [productId], references: [id])
+
+  @@unique([setId, productId])
+  @@index([setId, position])
+}
+
+model ProductReview {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  rating    Int
+  title     String
+  body      String
+  author    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+}
+
+model AffiliateLink {
+  id        String   @id @default(cuid())
+  label     String   @unique
+  url       String
+  provider  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clicks AffiliateClick[]
+}
+
+model AffiliateClick {
+  id        String   @id @default(cuid())
+  linkId    String
+  productId String?
+  setId     String?
+  themeKey  String?
+  referer   String?
+  userAgent String?
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  link AffiliateLink @relation(fields: [linkId], references: [id])
+
+  @@index([linkId])
+  @@index([createdAt])
+}
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String
+  refreshTokenHash String?
+  role             Role     @default(EDITOR)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  mediaAssets MediaAsset[]
+}
+
+model MediaAsset {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  url          String
+  mimeType     String
+  size         Int
+  width        Int?
+  height       Int?
+  metadata     Json?
+  uploadedById String?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([uploadedById])
+  @@index([createdAt])
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  customerName      String
+  email             String
+  phone             String?
+  items             Json
+  subtotal          Decimal?
+  status            OrderStatus @default(PENDING)
+  affiliateTracking String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@index([status])
+}
+
+model SiteSetting {
+  id                 String   @id @default("global") @map("global_settings")
+  homepageHeadline   String
+  homepageSubheading String
+  heroCtaLabel       String?
+  heroCtaHref        String?
+  accentColor        String   @default("#D6B17D")
+  logoUrl            String?
+  trackingCode       String?
+  updatedAt          DateTime @updatedAt
+  createdAt          DateTime @default(now())
+
+  @@map("Setting")
+}

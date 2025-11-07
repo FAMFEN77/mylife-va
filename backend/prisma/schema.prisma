@@ -1,0 +1,515 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String               @id @default(cuid())
+  email                String               @unique
+  premium              Boolean              @default(false)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  passwordHash         String?
+  refreshTokenHash     String?
+  role                 UserRole             @default(MEDEWERKER)
+  stripeCustomerId     String?              @unique
+  stripeSubscriptionId String?              @unique
+  stripePriceId        String?
+  stripeStatus         String?
+  premiumSince         DateTime?
+  premiumUntil         DateTime?
+  organisationId       String?
+  availabilities       Availability[]
+  Comment              Comment[]
+  expenses             Expense[]
+  googleAccount        GoogleAccount?
+  inspections          Inspection[]
+  invoices             Invoice[]
+  leaveRequests        LeaveRequest[]
+  magicLinks           MagicLink[]
+  passwordResetTokens  PasswordResetToken[]
+  reminders            Reminder[]
+  roomReservations     RoomReservation[]
+  assignedTasks        Task[]               @relation("TaskAssignee")
+  createdTasks         Task[]               @relation("TaskCreator")
+  timeEntries          TimeEntry[]
+  trips                Trip[]
+  createdCustomers     Customer[]           @relation("UserCreatedCustomers")
+  createdDocuments     Document[]           @relation("UserCreatedDocuments")
+  organisation         Organisation?        @relation(fields: [organisationId], references: [id])
+
+  @@index([organisationId])
+}
+
+model Organisation {
+  id                String                @id @default(cuid())
+  name              String
+  plan              PlanType              @default(PRO)
+  billingCustomerId String?
+  notes             String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  boards            Board[]
+  featureFlags      OrganisationFeature[]
+  projects          Project[]
+  users             User[]
+  customers         Customer[]
+}
+
+model OrganisationFeature {
+  id             String       @id @default(cuid())
+  organisationId String
+  key            String
+  enabled        Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, key])
+}
+
+model Board {
+  id             String       @id @default(cuid())
+  organisationId String
+  projectId      String?
+  name           String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  project        Project?     @relation(fields: [projectId], references: [id])
+  columns        Column[]
+  labels         Label[]
+  tasks          Task[]
+
+  @@index([organisationId])
+  @@index([projectId])
+}
+
+model Column {
+  id       String @id @default(cuid())
+  boardId  String
+  name     String
+  position Int
+  board    Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks    Task[] @relation("TaskColumn")
+
+  @@index([boardId])
+}
+
+model Project {
+  id             String       @id @default(cuid())
+  organisationId String
+  name           String
+  description    String?
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  boards         Board[]
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  timeEntries    TimeEntry[]
+
+  @@index([organisationId])
+  @@index([active])
+}
+
+model Task {
+  id           String          @id @default(cuid())
+  boardId      String
+  columnId     String
+  creatorId    String
+  assigneeId   String?
+  title        String
+  description  String?
+  status       String          @default("open")
+  priority     String?
+  dueDate      DateTime?
+  recurrenceId String?
+  closedAt     DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  attachments  Attachment[]
+  checklist    ChecklistItem[]
+  comments     Comment[]
+  assignee     User?           @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  board        Board           @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  column       Column          @relation("TaskColumn", fields: [columnId], references: [id], onDelete: Cascade)
+  creator      User            @relation("TaskCreator", fields: [creatorId], references: [id])
+  recurrence   Recurrence?     @relation(fields: [recurrenceId], references: [id])
+  labels       TaskLabel[]
+  timeEntries  TimeEntry[]
+
+  @@index([boardId])
+  @@index([columnId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Label {
+  id      String      @id @default(cuid())
+  boardId String
+  name    String
+  color   String?
+  board   Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks   TaskLabel[]
+
+  @@index([boardId])
+}
+
+model TaskLabel {
+  taskId  String
+  labelId String
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, labelId])
+}
+
+model ChecklistItem {
+  id       String    @id @default(cuid())
+  taskId   String
+  text     String
+  done     Boolean   @default(false)
+  position Int
+  doneAt   DateTime?
+  task     Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  taskId     String
+  fileUrl    String
+  fileName   String
+  mimeType   String
+  ocrPayload Json?
+  createdAt  DateTime @default(now())
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  taskId    String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([authorId])
+}
+
+model Recurrence {
+  id             String   @id @default(cuid())
+  rule           String
+  nextOccurrence DateTime
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  tasks          Task[]
+
+  @@index([nextOccurrence])
+  @@index([active])
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  userId    String
+  text      String
+  remindAt  DateTime
+  sent      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, remindAt])
+}
+
+model Availability {
+  id              String   @id @default(cuid())
+  userId          String
+  weekday         Int
+  startTime       String
+  endTime         String
+  location        String?
+  maxHoursPerWeek Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, weekday])
+}
+
+model MeetingRoom {
+  id           String            @id @default(cuid())
+  name         String            @unique
+  location     String?
+  capacity     Int?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  reservations RoomReservation[]
+
+  @@index([name])
+}
+
+model RoomReservation {
+  id          String      @id @default(cuid())
+  roomId      String
+  userId      String
+  title       String
+  description String?
+  start       DateTime
+  end         DateTime
+  attendees   String[]
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  room        MeetingRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, start, end])
+  @@index([userId, start])
+}
+
+model TimeEntry {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime
+  startTime   DateTime
+  endTime     DateTime
+  durationMin Int
+  projectId   String?
+  approved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  taskId      String?
+  project     Project? @relation(fields: [projectId], references: [id])
+  task        Task?    @relation(fields: [taskId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([approved])
+  @@index([projectId])
+  @@index([taskId])
+}
+
+model Trip {
+  id         String   @id @default(cuid())
+  userId     String
+  date       DateTime
+  from       String
+  to         String
+  distanceKm Float
+  approved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([approved])
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  userId    String
+  customer  String
+  date      DateTime
+  totalEx   Float
+  totalInc  Float
+  status    String   @default("draft")
+  pdfUrl    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([status])
+}
+
+model Expense {
+  id         String   @id @default(cuid())
+  userId     String
+  date       DateTime
+  amount     Float
+  category   String
+  receiptUrl String?
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([status])
+}
+
+model LeaveRequest {
+  id              String   @id @default(cuid())
+  userId          String
+  startDate       DateTime
+  endDate         DateTime
+  type            String
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  calendarEventId String?
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startDate])
+  @@index([status])
+}
+
+model Inspection {
+  id          String           @id @default(cuid())
+  inspectorId String
+  location    String
+  date        DateTime
+  notes       String?
+  pdfUrl      String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  inspector   User             @relation(fields: [inspectorId], references: [id], onDelete: Cascade)
+  items       InspectionItem[]
+
+  @@index([inspectorId, date])
+}
+
+model InspectionItem {
+  id           String     @id @default(cuid())
+  inspectionId String
+  description  String
+  score        Int
+  notes        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @default(now())
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+
+  @@index([inspectionId])
+}
+
+model Customer {
+  id             String         @id @default(cuid())
+  organisationId String
+  organisation   Organisation   @relation(fields: [organisationId], references: [id])
+
+  companyName    String?        @db.VarChar(200)
+  firstName      String         @db.VarChar(100)
+  lastName       String         @db.VarChar(100)
+  email          String         @db.VarChar(255)
+  phone          String?        @db.VarChar(50)
+
+  street         String?        @db.VarChar(200)
+  houseNumber    String?        @db.VarChar(20)
+  postalCode     String?        @db.VarChar(20)
+  city           String?        @db.VarChar(100)
+  country        String?        @db.VarChar(100)
+
+  kvkNumber      String?        @db.VarChar(50)
+  vatNumber      String?        @db.VarChar(50)
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  createdById    String?
+  createdBy      User?          @relation("UserCreatedCustomers", fields: [createdById], references: [id])
+  archivedAt     DateTime?
+  documents      Document[]
+
+  @@index([organisationId, lastName])
+  @@index([organisationId, email])
+  @@unique([organisationId, email])
+}
+
+model GoogleAccount {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  accessToken  String
+  refreshToken String
+  tokenType    String?
+  scope        String?
+  expiryDate   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MagicLink {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId, expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId, expiresAt])
+}
+
+enum UserRole {
+  MANAGER
+  MEDEWERKER
+}
+
+enum PlanType {
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+enum DocumentSource {
+  UPLOAD
+  EXTERNAL
+}
+
+enum DocumentType {
+  CONTRACT
+  INSPECTIE
+  BEHANDELPLAN
+  RAPPORT
+  OVERIG
+}
+
+enum DocumentStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model Document {
+  id           String         @id @default(cuid())
+  customerId   String
+  customer     Customer       @relation(fields: [customerId], references: [id])
+  title        String         @db.VarChar(200)
+  documentType DocumentType   @default(OVERIG)
+  source       DocumentSource
+  filePath     String?        @db.VarChar(500)
+  fileUrl      String?        @db.VarChar(1000)
+  status       DocumentStatus @default(ACTIVE)
+  createdAt    DateTime       @default(now())
+  createdById  String?
+  createdBy    User?          @relation("UserCreatedDocuments", fields: [createdById], references: [id])
+  archivedAt   DateTime?
+
+  @@index([customerId, createdAt])
+  @@index([customerId, status])
+}

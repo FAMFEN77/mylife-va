@@ -1,0 +1,12 @@
+{
+  "name": "mylife-va-tooling",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "pdf:handbook": "md-to-pdf docs/handbook.md --config-file scripts/md-to-pdf-config.json"
+  },
+  "devDependencies": {
+    "md-to-pdf": "^5.2.4",
+    "puppeteer": "^24.28.0"
+  }
+}

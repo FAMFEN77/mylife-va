@@ -1,0 +1,29 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient definities -->
+  <defs>
+    <linearGradient id="faviconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0EA5E9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="faviconAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Vereenvoudigd icoon voor kleine weergave -->
+  <circle cx="16" cy="13" r="6" fill="url(#faviconGradient)"/>
+  <path d="M 16 20 Q 8 22, 6 28 L 6 32 L 26 32 L 26 28 Q 24 22, 16 20 Z" 
+        fill="url(#faviconGradient)"/>
+  
+  <!-- Chat bubble -->
+  <rect x="20" y="8" width="10" height="7" rx="1.5" 
+        fill="url(#faviconAccent)"/>
+  <path d="M 23 15 L 25 17 L 27 15" fill="url(#faviconAccent)"/>
+  
+  <!-- Dots -->
+  <circle cx="22" cy="11.5" r="0.8" fill="white"/>
+  <circle cx="25" cy="11.5" r="0.8" fill="white"/>
+  <circle cx="28" cy="11.5" r="0.8" fill="white"/>
+</svg>

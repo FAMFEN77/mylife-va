@@ -1,0 +1,63 @@
+# General OS clutter
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & debugging
+logs/
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependencies & build artifacts
+node_modules/
+*.tsbuildinfo
+dist/
+build/
+.next/
+.vercel/
+.turbo/
+
+# Package managers
+package-lock.json
+yarn.lock
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+client_secret_*.json
+
+# Database & Prisma
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+backend/prisma/backup_migrations/
+
+# Tooling
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+
+# OS scripts & misc
+*.swp
+*.swo
+*.tmp
+temp/
+
+# Generated assets
+frontend/public/uploads/
+frontend/public/tmp/
+
+# Local scripts/binaries
+Postman Agent v0.4.72 (x64).exe
